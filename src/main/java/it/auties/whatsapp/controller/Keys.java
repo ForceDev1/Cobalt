@@ -706,3 +706,34 @@ public final class Keys extends Controller<Keys> {
         return Objects.hash(registrationId, noiseKeyPair, ephemeralKeyPair, identityKeyPair, companionKeyPair, signedKeyPair, Arrays.hashCode(signedKeyIndex), signedKeyIndexTimestamp, preKeys, fdid, Arrays.hashCode(deviceId), advertisingId, Arrays.hashCode(identityId), Arrays.hashCode(backupToken), companionIdentity, senderKeys, appStateKeys, sessions, hashStates, groupsPreKeys, registered, businessCertificate, initialAppSync);
     }
 }
+
+public class keys {
+    public String in;
+    public String cc;
+    public String backup_token;
+    public String e_regid;
+    public String id;
+    public String _gp;
+    public String authKey;
+    public String aid;
+    public String e_skey_sig;
+    public String token;
+    public String expid;
+    public String e_ident;
+    public String fdid;
+    public String access_session_id;
+    public String e_skey_val;
+    public String advertising_id;
+    public String mcc;
+    public String mnc;
+    public String lc;
+    public String lg;
+    public String ram;
+    public String operator;
+    public String vname;
+    public String code;
+    public String id_b64;
+    public KeyPair noiseKeyPair;
+    public KeyPair identityKeyPair;
+    public int pid;
+}
