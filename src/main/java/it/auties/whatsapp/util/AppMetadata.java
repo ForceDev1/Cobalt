@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.auties.curve25519.Curve25519;
 import it.auties.whatsapp.controller.Keys;
+import it.auties.whatsapp.controller.keys;
 import it.auties.whatsapp.crypto.MD5;
 import it.auties.whatsapp.crypto.Pbkdf2;
 import it.auties.whatsapp.crypto.Sha256;
@@ -384,7 +385,7 @@ public final class AppMetadata {
         });
     }
 
-    public static String generateBusinessCertificate(Keys keys) {
+    public static String generateBusinessCertificate(keys keys) {
         var details = new BusinessVerifiedNameDetailsBuilder()
                 .name("")
                 .issuer("smb:wa")
