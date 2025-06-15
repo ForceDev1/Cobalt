@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.auties.curve25519.Curve25519;
 import it.auties.whatsapp.controller.Keys;
-import it.auties.whatsapp.controller.keys;
 import it.auties.whatsapp.crypto.MD5;
 import it.auties.whatsapp.crypto.Pbkdf2;
 import it.auties.whatsapp.crypto.Sha256;
@@ -58,8 +57,8 @@ public final class AppMetadata {
     private static final String MOBILE_KAIOS_USER_AGENT = "Mozilla/5.0 (Mobile; LYF/F90M/LYF-F90M-000-03-31-121219; Android; rv:48.0) Gecko/48.0 Firefox/48.0 KAIOS/2.5";
     private static final byte[] MOBILE_ANDROID_SALT = Base64.getDecoder().decode("PkTwKSZqUfAUyR0rPQ8hYJ0wNsQQ3dW1+3SCnyTXIfEAxxS75FwkDf47wNv/c8pP3p0GXKR6OOQmhyERwx74fw1RYSU10I4r1gyBVDbRJ40pidjM41G1I1oN");
     private static final Version WEB_VERSION = Version.of("2.3000.1022032575");
-    private static final Version MOBILE_BUSINESS_IOS_VERSION = Version.of("2.25.10.72");
-    private static final Version MOBILE_PERSONAL_IOS_VERSION = Version.of("2.25.10.72");
+    private static final Version MOBILE_BUSINESS_IOS_VERSION = Version.of("2.25.17.80");
+    private static final Version MOBILE_PERSONAL_IOS_VERSION = Version.of("2.25.18.73");
     private static final URI WEB_UPDATE_URL = URI.create("https://web.whatsapp.com");
     private static final Pattern WEB_UPDATE_PATTERN = Pattern.compile("\"client_revision\":(\\w+)", Pattern.MULTILINE);
     private static final String MOBILE_IOS_STATIC = "0a1mLfGUIBVrMKF1RdvLI5lkRBvof6vn0fD2QRSM";
@@ -230,24 +229,20 @@ public final class AppMetadata {
         return ANDROID_CACHE.resolve(business ? "whatsapp_business.json" : "whatsapp.json");
     }
 
-    private static CompletableFuture<WhatsappAndroidApp> downloadAndroidData(boolean business) {
-        return Medias.downloadAsync(business ? MOBILE_BUSINESS_ANDROID_URL : MOBILE_ANDROID_URL, null, MOBILE_ANDROID_USER_AGENT).thenApplyAsync(apk -> {
-            try (var apkFile = new ByteArrayApkFile(apk)) {
-                var version = Version.of(apkFile.getApkMeta().getVersionName());
-                var md5Hash = MD5.calculate(apkFile.getFileData("classes.dex"));
-                var secretKey = getSecretKey(apkFile.getApkMeta().getPackageName(), getAboutLogo(apkFile));
-                var certificates = getCertificates(apkFile);
-                if (business) {
-                    var result = new WhatsappAndroidApp(version, md5Hash, secretKey, certificates, true);
-                    cacheWhatsappData(result);
-                    return businessApk = result;
-                }else {
-                    var result = new WhatsappAndroidApp(version, md5Hash, secretKey, certificates, false);
-                    cacheWhatsappData(result);
-                    return personalApk = result;
-                }
-            } catch (IOException | GeneralSecurityException exception) {
-                throw new RuntimeException("Cannot extract certificates from APK", exception);
+    public static CompletableFuture<WhatsappAndroidApp> downloadAndroidData(boolean business) {
+        System.out.println("123");
+        return CompletableFuture.supplyAsync(() -> {
+            List<byte[]> certificates = new ArrayList<>();
+            certificates.add(Base64.getDecoder().decode("MIIDMjCCAvCgAwIBAgIETCU2pDALBgcqhkjOOAQDBQAwfDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFDASBgNVBAcTC1NhbnRhIENsYXJhMRYwFAYDVQQKEw1XaGF0c0FwcCBJbmMuMRQwEgYDVQQLEwtFbmdpbmVlcmluZzEUMBIGA1UEAxMLQnJpYW4gQWN0b24wHhcNMTAwNjI1MjMwNzE2WhcNNDQwMjE1MjMwNzE2WjB8MQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEUMBIGA1UEBxMLU2FudGEgQ2xhcmExFjAUBgNVBAoTDVdoYXRzQXBwIEluYy4xFDASBgNVBAsTC0VuZ2luZWVyaW5nMRQwEgYDVQQDEwtCcmlhbiBBY3RvbjCCAbgwggEsBgcqhkjOOAQBMIIBHwKBgQD9f1OBHXUSKVLfSpwu7OTn9hG3UjzvRADDHj+AtlEmaUVdQCJR+1k9jVj6v8X1ujD2y5tVbNeBO4AdNG/yZmC3a5lQpaSfn+gEexAiwk+7qdf+t8Yb+DtX58aophUPBPuD9tPFHsMCNVQTWhaRMvZ1864rYdcq7/IiAxmd0UgBxwIVAJdgUI8VIwvMspK5gqLrhAvwWBz1AoGBAPfhoIXWmz3ey7yrXDa4V7l5lK+7+jrqgvlXTAs9B4JnUVlXjrrUWU/mcQcQgYC0SRZxI+hMKBYTt88JMozIpuE8FnqLVHyNKOCjrh4rs6Z1kW6jfwv6ITVi8ftiegEkO8yk8b6oUZCJqIPf4VrlnwaSi2ZegHtVJWQBTDv+z0kqA4GFAAKBgQDRGYtLgWh7zyRtQainJfCpiaUbzjJuhMgo4fVWZIvXHaSHBU1t5w//S0lDK2hiqkj8KpMWGywVov9eZxZy37V26dEqr/c2m5qZ0E+ynSu7sqUD7kGx/zeIcGT0H+KAVgkGNQCo5Uc0koLRWYHNtYoIvt5R3X6YZylbPftF/8ayWTALBgcqhkjOOAQDBQADLwAwLAIUAKYCp0d6z4QQdyN74JDfQ2WCyi8CFDUM4CaNB+ceVXdKtOrNTQcc0e+t"));
+
+            if (business) {
+                var result = new WhatsappAndroidApp(Version.of("2.25.18.73"), Base64.getDecoder().decode("F7dnf8hQ595wd60WU43FRg=="), Base64.getDecoder().decode("RFObk0NHtvEmCSluaRRbWDCd+U7QqKWi2UB4qOr/hwE+PZWmlkSqG5JGRlMsJ5+LzShVq1XyyLwWk623gAyI/w=="), certificates, false);
+                cacheWhatsappData(result);
+                return businessApk = result;
+            }else {
+                var result = new WhatsappAndroidApp(Version.of("2.25.18.73"), Base64.getDecoder().decode("F7dnf8hQ595wd60WU43FRg=="), Base64.getDecoder().decode("RFObk0NHtvEmCSluaRRbWDCd+U7QqKWi2UB4qOr/hwE+PZWmlkSqG5JGRlMsJ5+LzShVq1XyyLwWk623gAyI/w=="), certificates, false);
+                cacheWhatsappData(result);
+                return personalApk = result;
             }
         });
     }
@@ -265,7 +260,7 @@ public final class AppMetadata {
         });
     }
 
-    private static byte[] getAboutLogo(ByteArrayApkFile apkFile) throws IOException {
+    public static byte[] getAboutLogo(ByteArrayApkFile apkFile) throws IOException {
         var resource = apkFile.getFileData("res/drawable-hdpi/about_logo.png");
         if (resource != null) {
             return resource;
@@ -284,7 +279,7 @@ public final class AppMetadata {
         throw new NoSuchElementException("Missing about_logo.png from apk");
     }
 
-    private static List<byte[]> getCertificates(ByteArrayApkFile apkFile) throws IOException, CertificateException {
+    public static List<byte[]> getCertificates(ByteArrayApkFile apkFile) throws IOException, CertificateException {
         return apkFile.getApkSingers()
                 .stream()
                 .map(ApkSigner::getCertificateMetas)
@@ -293,7 +288,7 @@ public final class AppMetadata {
                 .toList();
     }
 
-    private static byte[] getSecretKey(String packageName, byte[] resource) throws IOException, GeneralSecurityException {
+    public static byte[] getSecretKey(String packageName, byte[] resource) throws IOException, GeneralSecurityException {
         var password = Bytes.concat(packageName.getBytes(StandardCharsets.UTF_8), resource);
         return Pbkdf2.hmacSha1With8Bit(password, MOBILE_ANDROID_SALT, 128, 512);
     }
@@ -385,17 +380,22 @@ public final class AppMetadata {
         });
     }
 
-    public static String generateBusinessCertificate(keys keys) {
+    public static String generateBusinessCertificate(Keys keys) {
         var details = new BusinessVerifiedNameDetailsBuilder()
                 .name("")
                 .issuer("smb:wa")
                 .serial(Math.abs(new SecureRandom().nextLong()))
                 .build();
+
         var encodedDetails = BusinessVerifiedNameDetailsSpec.encode(details);
+
+        System.out.println(Base64.getUrlEncoder().encodeToString(encodedDetails));
         var certificate = new BusinessVerifiedNameCertificateBuilder()
                 .encodedDetails(encodedDetails)
                 .signature(Curve25519.sign(keys.identityKeyPair().privateKey(), encodedDetails, true))
                 .build();
+
+        System.out.println(Base64.getUrlEncoder().encodeToString(BusinessVerifiedNameCertificateSpec.encode(certificate)));
         return Base64.getUrlEncoder().encodeToString(BusinessVerifiedNameCertificateSpec.encode(certificate));
     }
 
